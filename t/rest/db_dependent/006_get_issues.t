@@ -63,7 +63,29 @@ my $expected = [
     }
 ];
 
-is_deeply( $got, $expected, q{get user's issues} );
+my $fail = '';
+for my $i (0 .. scalar(@$expected) - 1) {
+    my $expected_item = $expected->[$i];
+    my $got_item = $got->[$i];
+    foreach my $key (keys $expected_item) {
+        if (not exists $got_item->{$key}) {
+            $fail = "missing key '$key'";
+        } elsif (
+            ( defined $got_item->{$key} xor defined $expected_item->{$key} )
+            or (    defined $got_item->{$key}
+                and defined $expected_item->{$key}
+                and $got_item->{$key} ne $expected_item->{$key} )
+          )
+        {
+            $fail = "\$got->{$key} is not equal to \$expected->{$key}";
+        }
+    }
+}
+if ($fail) {
+    fail("get user's issues : $fail");
+} else {
+    pass("get user's issues");
+}
 
 # Marcus Welch, 0 hold
 $path = "/user/23529000152273/issues";
@@ -82,7 +104,7 @@ $path = "/user/inexistantuser/issues";
 $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 
-$expected = undef;
+$expected = [];
 
 is_deeply( $got, $expected, q{get issues for inexistant user} );
 
@@ -91,6 +113,6 @@ $path = "/user//issues";
 
 $mech->get_ok($path);
 $got = from_json( $mech->response->content );
-$expected = undef;
+$expected = [];
 
 is_deeply( $got, $expected, q{missing parameter borrowernumber} );

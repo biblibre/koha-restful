@@ -14,9 +14,25 @@ use_ok('C4::Context');
 
 t::rest::lib::Mocks::mock_config;
 
+check_test_db_exists();
 recreate_db();
 initialize_data();
 update_database();
+
+sub check_test_db_exists {
+    my $dbh = eval { C4::Context->dbh };
+    my $dbname = C4::Context->config('database');
+    my $dbuser = C4::Context->config('user');
+    my $dbpass = C4::Context->config('pass');
+    if (not defined $dbh) {
+        use DBI;
+        $dbh = DBI->connect("dbi:mysql:host=localhost;port=3306", $dbuser, $dbpass);
+        my $rows = $dbh->do("CREATE DATABASE $dbname CHARACTER SET utf8 COLLATE utf8_bin");
+        if (not defined $rows) {
+            BAIL_OUT("Test database is missing and I don't have permission to create it. Please give all privileges to user '$dbuser' on database '$dbname'.");
+        }
+    }
+}
 
 sub recreate_db {
     my $dbh = C4::Context->dbh;

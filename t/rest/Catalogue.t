@@ -8,20 +8,23 @@ use Test::WWW::Mechanize::CGIApp;
 use Koha::REST::Catalogue;
 use JSON;
 
+my $c4_biblio_module = new Test::MockModule('C4::Biblio');
 my $c4_items_module = new Test::MockModule('C4::Items');
 my $c4_branch_module = new Test::MockModule('C4::Branch');
 my $c4_reserves_module = new Test::MockModule('C4::Reserves');
 my $c4_members_module = new Test::MockModule('C4::Members');
 
+$c4_biblio_module->mock('GetBiblio', \&mock_c4_biblio_GetBiblio);
 $c4_items_module->mock('get_itemnumbers_of',
     \&mock_c4_items_get_itemnumbers_of);
 $c4_items_module->mock('GetItem', \&mock_c4_items_GetItem);
+$c4_items_module->mock('GetItemsInfo', \&mock_c4_items_GetItemsInfo);
 $c4_branch_module->mock('GetBranchName', \&mock_c4_branch_GetBranchName);
 $c4_reserves_module->mock('CanBookBeReserved', \&mock_c4_reserves_CanBookBeReserved);
 $c4_reserves_module->mock('CanItemBeReserved', \&mock_c4_reserves_CanItemBeReserved);
 $c4_members_module->mock('GetMember', \&mock_c4_members_GetMember);
 
-my (%itemnumbers_by_biblionumber, %items_by_itemnumber,
+my (%biblios, %itemnumbers_by_biblionumber, %items_by_itemnumber,
     %branchnames_by_branchcode, %is_biblio_holdable_by_borrowernumber,
     %is_item_holdable_by_borrowernumber, %borrowers_by_username);
 
@@ -74,7 +77,7 @@ $output = from_json($mech->response->content);
 is(ref $output, 'HASH', "$path response is a hash");
 ok(exists $output->{is_holdable}, "$path response contains 'is_holdable' key");
 ok(exists $output->{reasons}, "$path response contains 'reasons' key");
-is($output->{is_holdable}, 0, "$path biblio 1 is not holdable by borrowernumber 2");
+is($output->{is_holdable}, 1, "$path biblio 1 is holdable by borrowernumber 2");
 
 ## /biblio/:biblionumber/items_holdable_status
 
@@ -121,6 +124,18 @@ ok($output->{is_holdable}, "$path item is holdable by user1");
 # Mocked subroutines
 
 BEGIN {
+    %biblios = (
+        1 => {}
+    );
+}
+
+sub mock_c4_biblio_GetBiblio {
+    my ($biblionumber) = @_;
+
+    return $biblios{$biblionumber};
+}
+
+BEGIN {
     %itemnumbers_by_biblionumber = (
         1 => [1, 2]
     );
@@ -137,6 +152,7 @@ sub mock_c4_items_get_itemnumbers_of {
 BEGIN {
     %items_by_itemnumber = (
         1 => {
+            itemnumber => 1,
             holdingbranch => 'B1',
             homebranch => 'B2',
             wthdrawn => 0,
@@ -152,6 +168,7 @@ BEGIN {
             itype => 'BOOK',
         },
         2 => {
+            itemnumber => 2,
             holdingbranch => 'B3',
             homebranch => 'B2',
             wthdrawn => 1,
@@ -173,6 +190,18 @@ sub mock_c4_items_GetItem {
     my ($itemnumber) = @_;
 
     return $items_by_itemnumber{$itemnumber};
+}
+
+sub mock_c4_items_GetItemsInfo {
+    my ($biblionumber) = @_;
+
+    my $itemnumbers = $itemnumbers_by_biblionumber{$biblionumber};
+    my @items;
+    foreach my $itemnumber (@$itemnumbers) {
+        push @items, $items_by_itemnumber{$itemnumber};
+    }
+
+    return @items;
 }
 
 BEGIN {

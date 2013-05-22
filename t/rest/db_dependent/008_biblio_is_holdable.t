@@ -6,7 +6,7 @@ use FindBin qw( $Bin );
 
 use lib "$Bin/../../..";
 use t::rest::lib::Mocks;
-use Test::More tests => 6;
+use Test::More tests => 16;
 use Test::WWW::Mechanize::CGIApp;
 use JSON;
 use Data::Dumper;
@@ -60,6 +60,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    reasons => [],
 };
 is_deeply( $got, $expected, q{can reserve} );
 
@@ -95,6 +96,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    reasons => [],
 };
 is_deeply( $got, $expected, q{cannot reserve because there are available items} );
 
@@ -103,6 +105,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    reasons => [],
 };
 is_deeply( $got, $expected, q{can reserve} );
 

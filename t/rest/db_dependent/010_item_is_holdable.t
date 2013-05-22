@@ -6,7 +6,7 @@ use FindBin qw( $Bin );
 
 use lib "$Bin/../../..";
 use t::rest::lib::Mocks;
-use Test::More tests => 6;
+use Test::More tests => 16;
 use Test::WWW::Mechanize::CGIApp;
 use JSON;
 
@@ -23,9 +23,7 @@ $mech->get_ok($path);
 my $got = from_json( $mech->response->content );
 my $expected = {
     'is_holdable' => JSON::false,
-    'reasons' => {
-        'reserved' => 1
-    }
+    'reasons' => ['No reasons...'],
 };
 is_deeply( $got, $expected, q{cannot reserve because already reserved} );
 
@@ -34,6 +32,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    'reasons' => [],
 };
 is_deeply( $got, $expected, q{cannot reserve because already checked out} );
 
@@ -42,9 +41,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::false,
-    'reasons' => {
-        'item_available' => 1
-    },
+    'reasons' => ['No reasons...'],
 };
 is_deeply( $got, $expected, q{cannot reserve because the item is available} );
 
@@ -53,6 +50,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    'reasons' => [],
 };
 is_deeply( $got, $expected, q{can reserve} );
 
@@ -64,9 +62,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::false,
-    'reasons' => {
-        'reserved' => 1
-    }
+    'reasons' => ['No reasons...'],
 };
 is_deeply( $got, $expected, q{cannot reserve because already reserved} );
 
@@ -76,6 +72,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    'reasons' => [],
 };
 is_deeply( $got, $expected, q{cannot reserve because already checked out} );
 
@@ -85,7 +82,7 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
-    'reasons' => []
+    'reasons' => [],
 };
 is_deeply( $got, $expected, q{cannot reserve because the item is available} );
 
@@ -94,5 +91,6 @@ $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 $expected = {
     'is_holdable' => JSON::true,
+    'reasons' => [],
 };
 is_deeply( $got, $expected, q{can reserve} );

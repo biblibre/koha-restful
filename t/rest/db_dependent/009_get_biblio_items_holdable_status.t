@@ -6,7 +6,7 @@ use FindBin qw( $Bin );
 
 use lib "$Bin/../../..";
 use t::rest::lib::Mocks;
-use Test::More tests => 6;
+use Test::More tests => 16;
 use Test::WWW::Mechanize::CGIApp;
 use JSON;
 use Data::Dumper;
@@ -22,21 +22,21 @@ t::rest::lib::Mocks::mock_preference('AllowOnShelfHolds', '0');
 my $path = "/biblio/3/items_holdable_status?borrowernumber=5";
 $mech->get_ok($path);
 my $got = from_json( $mech->response->content );
-#FIXME there is... no reason
 my $expected = {
     '8' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     },
     '7' => {
-        'is_holdable' => JSON::true,
+        'is_holdable' => JSON::false,
+        'reasons' => [],
     },
     '9' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     }
 };
-is_deeply( $got, $expected, q{can reserve 1 item} );
+is_deeply( $got, $expected, q{cannot reserve items} );
 
 
 $path = "/biblio/2/items_holdable_status?borrowernumber=5";
@@ -45,14 +45,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '4' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '5' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     },
     '6' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{can reserve 1 item} );
@@ -63,15 +64,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '10' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     },
     '11' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     },
     '12' => {
         'is_holdable' => JSON::false,
-        'reasons' => []
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{cannot reserve because all items are available} );
@@ -82,12 +83,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '1' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '2' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '3' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{can reserve} );
@@ -97,19 +101,21 @@ t::rest::lib::Mocks::mock_preference('AllowOnShelfHolds', '1');
 $path = "/biblio/3/items_holdable_status?borrowernumber=5";
 $mech->get_ok($path);
 $got = from_json( $mech->response->content );
-#FIXME there is... no reason
 $expected = {
     '8' => {
-        'is_holdable' => JSON::true,
+        'is_holdable' => JSON::false,
+        'reasons' => [],
     },
     '7' => {
-        'is_holdable' => JSON::true,
+        'is_holdable' => JSON::false,
+        'reasons' => [],
     },
     '9' => {
-        'is_holdable' => JSON::true,
+        'is_holdable' => JSON::false,
+        'reasons' => [],
     }
 };
-is_deeply( $got, $expected, q{All items are available} );
+is_deeply( $got, $expected, q{No items are available} );
 
 
 $path = "/biblio/2/items_holdable_status?borrowernumber=5";
@@ -118,12 +124,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '4' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '5' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '6' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{All items are available} );
@@ -134,12 +143,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '10' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '11' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '12' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{can reserve because all items are available} );
@@ -150,12 +162,15 @@ $got = from_json( $mech->response->content );
 $expected = {
     '1' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '2' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     },
     '3' => {
         'is_holdable' => JSON::true,
+        'reasons' => [],
     }
 };
 is_deeply( $got, $expected, q{can reserve} );

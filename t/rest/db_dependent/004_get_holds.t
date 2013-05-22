@@ -28,7 +28,7 @@ my $expected = [
         'itemnumber' => '7',
         'itemcallnumber' => undef,
         'branchname' => 'Midway',
-        'hold_id' => undef,
+        'hold_id' => '1',
         'reservedate' => '2013-04-30',
         'barcode' => '0000000007',
         'found' => undef,
@@ -53,7 +53,7 @@ $expected = [
         'itemnumber' => '1',
         'itemcallnumber' => undef,
         'branchname' => 'Midway',
-        'hold_id' => undef,
+        'hold_id' => '2',
         'reservedate' => '2013-04-30',
         'barcode' => '0000000001',
         'found' => undef,
@@ -67,7 +67,7 @@ $expected = [
         'itemnumber' => '4',
         'itemcallnumber' => undef,
         'branchname' => 'Midway',
-        'hold_id' => undef,
+        'hold_id' => '3',
         'reservedate' => '2013-04-30',
         'barcode' => '0000000004',
         'found' => undef,
@@ -81,7 +81,7 @@ $expected = [
         'itemnumber' => '7',
         'itemcallnumber' => undef,
         'branchname' => 'Midway',
-        'hold_id' => undef,
+        'hold_id' => '4',
         'reservedate' => '2013-04-30',
         'barcode' => '0000000007',
         'found' => undef,
@@ -112,7 +112,7 @@ $path = "/user/inexistantuser/holds";
 $mech->get_ok($path);
 $got = from_json( $mech->response->content );
 
-$expected = undef;
+$expected = [];
 
 is_deeply( $got, $expected, q{get holds for inexistant user} );
 
@@ -121,6 +121,6 @@ $path = "/user//holds";
 
 $mech->get_ok($path);
 $got = from_json( $mech->response->content );
-$expected = undef;
+$expected = [];
 
 is_deeply( $got, $expected, q{missing parameter borrowernumber} );

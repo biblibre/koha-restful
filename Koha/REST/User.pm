@@ -73,6 +73,7 @@ sub rm_get_issues {
 sub get_holds {
     my ($borrowernumber) = @_;
     return [] unless ($borrowernumber);
+    return [] unless C4::Members::GetMember(borrowernumber => $borrowernumber);
 
     my $response = [];
     my @holds = C4::Reserves::GetReservesFromBorrowernumber($borrowernumber);
@@ -107,6 +108,7 @@ sub get_holds {
 sub get_issues {
     my ($borrowernumber) = @_;
     return [] unless ($borrowernumber);
+    return [] unless C4::Members::GetMember(borrowernumber => $borrowernumber);
 
     my $response = [];
     my $issues = C4::Members::GetPendingIssues($borrowernumber);
