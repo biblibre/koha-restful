@@ -3,7 +3,7 @@ package Koha::REST::User;
 use base 'CGI::Application';
 use Modern::Perl;
 
-use Koha::REST::Response qw(format_response response_boolean);
+use Koha::REST::Response qw(format_response format_error response_boolean);
 use C4::Reserves;
 use C4::Circulation;
 use C4::Biblio;
@@ -19,6 +19,7 @@ sub setup {
     $self->run_modes(
         create_user => 'rm_create_user',
         edit_user => 'rm_edit_user',
+        delete_user => 'rm_delete_user',
         get_holds_byid => 'rm_get_holds_byid',
         get_holds => 'rm_get_holds',
         get_issues_byid => 'rm_get_issues_byid',
@@ -288,6 +289,27 @@ sub rm_edit_user {
             modified_fields => {},
         };
     }
+
+    return format_response($self, $response);
+}
+
+sub rm_delete_user {
+    my $self = shift;
+
+    my $userid = $self->param('user_name');
+    my $borrower = C4::Members::GetMember(userid => $userid);
+
+    unless ($borrower) {
+        return format_error($self, '404 Not Found', {
+            error => "Borrower not found.",
+        });
+    }
+
+    my $borrowernumber = $borrower->{borrowernumber};
+    my $deleted = C4::Members::DelMember($borrowernumber);
+    my $response = {
+        deleted => response_boolean($deleted),
+    };
 
     return format_response($self, $response);
 }
