@@ -498,6 +498,23 @@ A JSON object with the following keys:
 
 =back
 
+=head3 DELETE user/:user_name
+
+=over 2
+
+Delete user
+
+Required parameters:
+
+=over 2
+
+=item * user_name: username (userid) of user to delete.
+
+=back
+
+=back
+
+
 =head2 Biblio
 
 =head3 GET biblio/:biblionumber/items
