@@ -40,7 +40,18 @@ sub rm_get_biblio_items {
 
     my %reserves;
     if ($get_reserves) {
-        my $res = C4::Reserves::GetReservesFromBiblionumber($biblionumber);
+        my $res;
+
+        # Since Koha 3.14.06.003, GetReservesFromBiblionumber takes a hashref
+        # as its only parameter, and die if we pass an integer as first
+        # parameter. So this should work for all versions.
+        eval {
+            $res = C4::Reserves::GetReservesFromBiblionumber($biblionumber);
+        };
+        if ($@) {
+            $res = C4::Reserves::GetReservesFromBiblionumber({biblionumber => $biblionumber});
+        }
+
         if ($res) {
             foreach my $reserve (@$res) {
                 push @{ $reserves{ $reserve->{itemnumber} } }, $reserve;
