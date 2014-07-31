@@ -1,5 +1,6 @@
 authorizedips:
         - "127.0.0.1"
+debug: 0
 # fields from the borrowers table to be sent by the today and all services
 #borrowerfields:
 #        - "surname"
