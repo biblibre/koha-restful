@@ -64,7 +64,7 @@ sub rm_get_biblio_items {
         my $holdingbranchname = C4::Branch::GetBranchName($item->{holdingbranch});
         my $homebranchname = C4::Branch::GetBranchName($item->{homebranch});
         my $r = {
-            withdrawn => $item->{wthdrawn},
+            withdrawn => $item->{withdrawn},
             date_due => $item->{datedue},
             holdingbranchname => $holdingbranchname,
             homebranchname => $homebranchname,
