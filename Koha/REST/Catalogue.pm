@@ -220,11 +220,13 @@ sub biblio_is_holdable {
         my @list = CanItemBeReserved($borrowernumber,$item->{itemnumber});
         if ($list[0] == 1){
             return 1;
-        } else {
-            $currentreserves = $list[1]
-                if ($list[1] > $currentreserves);
-            $maxreservesallowed = $list[2]
-                if ($list[2] < $maxreservesallowed or $maxreservesallowed == -1);
+        } elsif (scalar @list > 1) {
+            if ($list[1] > $currentreserves) {
+                $currentreserves = $list[1];
+            }
+            if ($list[2] < $maxreservesallowed or $maxreservesallowed == -1) {
+                $maxreservesallowed = $list[2];
+            }
         }
     }
 
