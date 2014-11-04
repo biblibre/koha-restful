@@ -7,9 +7,6 @@ use Test::WWW::Mechanize::CGIApp;
 
 use Koha::REST::Catalogue;
 use JSON;
-#use Carp ();
-#$SIG{__WARN__} = \&Carp::cluck;
-#$SIG{__DIE__} = \&Carp::confess;
 
 my $c4_biblio_module = new Test::MockModule('C4::Biblio');
 my $c4_items_module = new Test::MockModule('C4::Items');
