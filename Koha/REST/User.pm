@@ -17,6 +17,7 @@ use JSON;
 sub setup {
     my $self = shift;
     $self->run_modes(
+        get_users => 'rm_get_users',
         create_user => 'rm_create_user',
         edit_user => 'rm_edit_user',
         delete_user => 'rm_delete_user',
@@ -30,6 +31,21 @@ sub setup {
         get_all => 'all',
         login_exists => 'rm_login_exists',
     );
+}
+
+sub rm_get_users {
+    my $self = shift;
+    my $q = $self->query;
+
+    my @fields = $q->param('f');
+    my $columns_out = @fields ? \@fields : undef;
+
+    my %filters = $q->Vars;
+    delete $filters{f};
+
+    my $borrowers = C4::Members::Search(\%filters, 'borrowernumber', undef,
+        $columns_out);
+    return format_response($self, $borrowers);
 }
 
 sub get_borrowernumber {

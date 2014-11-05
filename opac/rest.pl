@@ -79,6 +79,41 @@ following keys:
 
 =head2 User
 
+=head3 GET user
+
+=over 2
+
+Search users
+
+Allowed parameters:
+
+=over 2
+
+=item * f: Repeatable. Tell which borrower fields to return in the response.
+If none is given, return all fields.
+
+=item * Any other parameter is considered as a filter and should have the name of a database column in borrowers table.
+
+=back
+
+Response:
+
+=over 2
+
+a JSON array that contains a JSON object for each borrower returned.
+
+=back
+
+Example:
+
+=over 2
+
+=item * GET /user?categorycode=STAFF&f=borrowernumber (returns the borrowernumber of all STAFF users)
+
+=back
+
+=back
+
 =head3 GET user/byid/:borrowernumber/holds
 
 =over 2
