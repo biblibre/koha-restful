@@ -67,7 +67,6 @@ sub rm_get_biblio_items {
     my $kohaversion = C4::Context::KOHAVERSION;
     $kohaversion =~ s/(.*\..*)\.(.*)\.(.*)/$1$2$3/;
     my $withdrawn = $kohaversion >= 3.16 ? 'withdrawn' : 'wthdrawn';
-    warn Dumper($withdrawn);
     foreach my $item (@all_items) {
         my $holdingbranchname = C4::Branch::GetBranchName($item->{holdingbranch});
         my $homebranchname = C4::Branch::GetBranchName($item->{homebranch});
