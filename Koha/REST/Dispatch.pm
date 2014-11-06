@@ -50,6 +50,8 @@ sub dispatch_args {
                 => { app => 'User', rm => 'edit_user' },
             'user/:user_name[delete]'
                 => { app => 'User', rm => 'delete_user' },
+            'user/:user_name/renewal[post]'
+                => { app => 'User', rm => 'renew_user' },
             'biblio/:biblionumber/items[get]'
                 => { app => 'Catalogue', rm => 'get_biblio_items' },
             'biblio/:biblionumber/holdable[get]'

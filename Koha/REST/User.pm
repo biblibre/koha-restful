@@ -4,14 +4,13 @@ use base 'CGI::Application';
 use Modern::Perl;
 
 use Koha::REST::Response qw(format_response format_error response_boolean);
+use Koha::REST::Config;
 use C4::Reserves;
 use C4::Circulation;
 use C4::Biblio;
 use C4::Items;
 use C4::Branch;
 use C4::Members;
-use YAML;
-use File::Basename;
 use JSON;
 
 sub setup {
@@ -30,6 +29,7 @@ sub setup {
         get_today => 'today',
         get_all => 'all',
         login_exists => 'rm_login_exists',
+        renew_user => 'rm_renew_user',
     );
 }
 
@@ -193,9 +193,9 @@ sub rm_get_issues_history_byid {
 
 sub today {
     my $self = shift;
+
     # read the config file, we will use the borrowerfields filter if they exist
-    my $conf_path = dirname($ENV{KOHA_CONF});
-    my $conf = YAML::LoadFile("$conf_path/rest/config.yaml");
+    my $conf = Koha::REST::Config->load;
 
     my $today_patrons;
     if ($conf->{borrowerfields} ) {
@@ -213,9 +213,9 @@ sub today {
 
 sub all {
     my $self = shift;
+
     # read the config file, we will use the borrowerfields filter if they exist
-    my $conf_path = dirname($ENV{KOHA_CONF});
-    my $conf = YAML::LoadFile("$conf_path/rest/config.yaml");
+    my $conf = Koha::REST::Config->load;
 
     my $all_patrons;
     if ($conf->{borrowerfields} ) {
@@ -330,6 +330,46 @@ sub rm_delete_user {
     };
 
     return format_response($self, $response);
+}
+
+sub rm_renew_user {
+    my $self = shift;
+
+    my $userid = $self->param('user_name');
+    my $borrower = C4::Members::GetMember(userid => $userid);
+    if (!$borrower) {
+        return format_error($self, '404 Not Found', {
+            error => 'Borrower not found',
+        });
+    }
+
+    my $config = Koha::REST::Config->load;
+    my $allow_renewal = $config->{allow_renewal} // 0;
+    my $allow_nonfree_renewal = $config->{allow_nonfree_renewal} // 0;
+
+    if (!$allow_renewal) {
+        return format_error($self, '401 Unauthorized', {
+            error => "You are not allowed to renew subscriptions",
+        });
+    }
+
+    if (!$allow_nonfree_renewal) {
+        my $dbh = C4::Context->dbh;
+        my $sth = $dbh->prepare(q|
+            SELECT enrolmentfee FROM categories WHERE categorycode = ?
+        |);
+        $sth->execute($borrower->{categorycode});
+        my ($enrolmentfee) = $sth->fetchrow;
+        if ($enrolmentfee && $enrolmentfee > 0) {
+            return format_error($self, '401 Unauthorized', {
+                error => "You are not allowed to renew non-free subscriptions",
+            });
+        }
+    }
+
+    my $dateexpiry = C4::Members::ExtendMemberSubscriptionTo(
+        $borrower->{borrowernumber});
+    return format_response($self, {dateexpiry => $dateexpiry});
 }
 
 1;

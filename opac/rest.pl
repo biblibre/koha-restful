@@ -5,13 +5,11 @@
 # This script provide a RESTful webservice to interact with Koha.
 
 use Modern::Perl;
-use YAML;
-use File::Basename;
 use CGI::Application::Dispatch;
 use List::MoreUtils qw(any);
+use Koha::REST::Config;
 
-my $conf_path = dirname($ENV{KOHA_CONF});
-my $conf = YAML::LoadFile("$conf_path/rest/config.yaml");
+my $conf = Koha::REST::Config->load;
 $conf->{debug} //= 0;
 
 # First of all, let's test if the client IP is allowed to use our service
@@ -546,6 +544,24 @@ Required parameters:
 =over 2
 
 =item * user_name: username (userid) of user to delete.
+
+=back
+
+=back
+
+=head3 POST user/:user_name/renewal
+
+=over 2
+
+Renew a borrower's subscription
+
+Configuration parameters:
+
+=over 2
+
+=item * allow_renewal: 0 or 1. If 0, this service does nothing. Default is 0.
+
+=item * allow_nonfree_renewal: 0 or 1. If 0, only free renewals are allowed. If 1, all renewals are allowed. Default is 0.
 
 =back
 
