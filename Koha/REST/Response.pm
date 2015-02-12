@@ -13,8 +13,15 @@ our @EXPORT_OK = qw(
 sub format_response {
     my ($cgi_application, $response) = @_;
 
+    my $json_options = {
+        utf8 => 1,
+        pretty => 1,
+        allow_blessed => 1,
+        convert_blessed => 1,
+    };
+
     $cgi_application->header_props(-content_type => 'application/json');
-    return to_json($response, { utf8 => 1, pretty => 1 });
+    return to_json($response, $json_options);
 }
 
 sub response_boolean {
@@ -23,8 +30,16 @@ sub response_boolean {
 
 sub format_error {
     my ($cgi_application, $status, $response) = @_;
+
+    my $json_options = {
+        utf8 => 1,
+        pretty => 1,
+        allow_blessed => 1,
+        convert_blessed => 1,
+    };
+
     $cgi_application->header_props(-content_type => 'application/json', -status => $status);
-    return to_json($response, { utf8 => 1, pretty => 1 });
+    return to_json($response, $json_options);
 }
 
 1;
