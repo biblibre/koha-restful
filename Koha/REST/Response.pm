@@ -16,8 +16,6 @@ sub format_response {
     my $json_options = {
         utf8 => 1,
         pretty => 1,
-        allow_blessed => 1,
-        convert_blessed => 1,
     };
 
     $cgi_application->header_props(-content_type => 'application/json');
@@ -25,7 +23,7 @@ sub format_response {
 }
 
 sub response_boolean {
-    (shift) ? JSON::true : JSON::false;
+    (shift) ? \1 : \0;
 }
 
 sub format_error {
@@ -34,8 +32,6 @@ sub format_error {
     my $json_options = {
         utf8 => 1,
         pretty => 1,
-        allow_blessed => 1,
-        convert_blessed => 1,
     };
 
     $cgi_application->header_props(-content_type => 'application/json', -status => $status);
