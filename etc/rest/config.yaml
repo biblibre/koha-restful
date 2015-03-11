@@ -1,3 +1,4 @@
+manageauthorizedips: 1
 authorizedips:
         - "127.0.0.1"
 debug: 0
