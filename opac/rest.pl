@@ -7,6 +7,9 @@
 use Modern::Perl;
 use CGI::Application::Dispatch;
 use List::MoreUtils qw(any);
+
+use FindBin qw($RealBin);
+use lib "$RealBin/..";
 use Koha::REST::Config;
 
 my $conf = Koha::REST::Config->load;
@@ -987,6 +990,38 @@ Response:
 =over 2
 
 a JSON object with only one key: "success", which is true.
+
+=back
+
+=back
+
+=head3 GET /topissues
+
+=over 2
+
+Retrieve the list of top issues
+
+Optional parameters:
+
+=over 2
+
+=item * count: Number of titles to retrieve
+
+=item * branch: Filter by branchcode
+
+=item * itemtype: Filter by itemtype
+
+=item * ccode: Filter by ccode
+
+=item * newness: Filter by newness (in days)
+
+=back
+
+Examples:
+
+=over 2
+
+=item * GET /topissues?count=10&newness=30
 
 =back
 
