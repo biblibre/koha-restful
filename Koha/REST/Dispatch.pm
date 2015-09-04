@@ -72,6 +72,8 @@ sub dispatch_args {
                 => { app => 'Suggestions', rm => 'edit_suggestion' },
             'suggestions/:suggestionid[delete]'
                 => { app => 'Suggestions', rm => 'delete_suggestion' },
+            'topissues[get]'
+                => { app => 'TopIssues', rm => 'get_topissues' },
         ],
     };
 }
