@@ -60,11 +60,18 @@ sub rm_get_biblio_items {
     }
 
     my @all_items = C4::Items::GetItemsInfo($biblionumber);
+
+    # Koha version < 3.16 has a typo in $item, wthdrawn
+    # Conditional needed to support testing on versions < 3.16
+
+    my $kohaversion = C4::Context::KOHAVERSION;
+    $kohaversion =~ s/(.*\..*)\.(.*)\.(.*)/$1$2$3/;
+    my $withdrawn = $kohaversion >= 3.16 ? 'withdrawn' : 'wthdrawn';
     foreach my $item (@all_items) {
         my $holdingbranchname = C4::Branch::GetBranchName($item->{holdingbranch});
         my $homebranchname = C4::Branch::GetBranchName($item->{homebranch});
         my $r = {
-            withdrawn => $item->{wthdrawn},
+            withdrawn => $item->{$withdrawn},
             date_due => $item->{datedue},
             holdingbranchname => $holdingbranchname,
             homebranchname => $homebranchname,
@@ -217,14 +224,16 @@ sub biblio_is_holdable {
 
     my ($currentreserves,$maxreservesallowed) = (0, -1);
     for my $item (@items){
-        my @list = CanItemBeReserved($borrowernumber,$item->{itemnumber});
+        my @list = C4::Reserves::CanItemBeReserved($borrowernumber,$item->{itemnumber});
         if ($list[0] == 1){
             return 1;
-        } else {
-            $currentreserves = $list[1]
-                if ($list[1] > $currentreserves);
-            $maxreservesallowed = $list[2]
-                if ($list[2] < $maxreservesallowed or $maxreservesallowed == -1);
+        } elsif (scalar @list > 1) {
+            if ($list[1] > $currentreserves) {
+                $currentreserves = $list[1];
+            }
+            if ($list[2] < $maxreservesallowed or $maxreservesallowed == -1) {
+                $maxreservesallowed = $list[2];
+            }
         }
     }
 
@@ -245,10 +254,9 @@ sub item_is_holdable {
         my $biblionumber = $item->{biblionumber};
 
         my $can_reserve = C4::Reserves::CanItemBeReserved($borrowernumber, $itemnumber);
-
         # This shouldn't be here. It should be in the
         # C4::Reserves::CanItemBeReserved function. But that's how koha works.
-        my $available = IsAvailableForItemLevelRequest($itemnumber);
+        my $available = C4::Reserves::IsAvailableForItemLevelRequest($itemnumber);
 
         my @reserves = C4::Reserves::GetReservesFromBorrowernumber($borrowernumber);
         my $already_reserved = 0;

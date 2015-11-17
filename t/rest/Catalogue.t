@@ -13,6 +13,7 @@ my $c4_items_module = new Test::MockModule('C4::Items');
 my $c4_branch_module = new Test::MockModule('C4::Branch');
 my $c4_reserves_module = new Test::MockModule('C4::Reserves');
 my $c4_members_module = new Test::MockModule('C4::Members');
+my $koha_rest_catalogue_module = new Test::MockModule('Koha::REST::Catalogue');
 
 $c4_biblio_module->mock('GetBiblio', \&mock_c4_biblio_GetBiblio);
 $c4_items_module->mock('get_itemnumbers_of',
@@ -22,11 +23,13 @@ $c4_items_module->mock('GetItemsInfo', \&mock_c4_items_GetItemsInfo);
 $c4_branch_module->mock('GetBranchName', \&mock_c4_branch_GetBranchName);
 $c4_reserves_module->mock('CanBookBeReserved', \&mock_c4_reserves_CanBookBeReserved);
 $c4_reserves_module->mock('CanItemBeReserved', \&mock_c4_reserves_CanItemBeReserved);
+$c4_reserves_module->mock('IsAvailableForItemLevelRequest', \&mock_c4_reserves_IsAvailableForItemLevelRequest);
 $c4_members_module->mock('GetMember', \&mock_c4_members_GetMember);
+$koha_rest_catalogue_module->mock('items_columns', \&mock_koha_rest_catalogue_items_columns);
 
 my (%biblios, %itemnumbers_by_biblionumber, %items_by_itemnumber,
-    %branchnames_by_branchcode, %is_biblio_holdable_by_borrowernumber,
-    %is_item_holdable_by_borrowernumber, %borrowers_by_username);
+    %branchnames_by_branchcode, %is_biblio_holdable_by_borrowernumber, %is_available_for_item_level_request,
+    %is_item_holdable_by_borrowernumber, %borrowers_by_username, @items_columns);
 
 
 # Tests
@@ -41,8 +44,7 @@ my $path = "/biblio/:biblionumber/items";
 $mech->get_ok('/biblio/0/items');
 my $output = from_json($mech->response->content);
 is_deeply($output, [], "$path with unknown biblionumber returns []");
-
-$mech->get_ok('/biblio/1/items');
+$mech->get_ok('/biblio/1/items', "get items for valid biblionumber");
 $output = from_json($mech->response->content);
 is(ref $output, 'ARRAY', "$path response is an array");
 is(scalar @$output, 2, "$path response contains the good number of items");
@@ -155,7 +157,7 @@ BEGIN {
             itemnumber => 1,
             holdingbranch => 'B1',
             homebranch => 'B2',
-            wthdrawn => 0,
+            withdrawn => 0,
             notforloan => 0,
             onloan => '2000-01-01',
             location => 'ABC',
@@ -171,7 +173,7 @@ BEGIN {
             itemnumber => 2,
             holdingbranch => 'B3',
             homebranch => 'B2',
-            wthdrawn => 1,
+            withdrawn => 1,
             notforloan => 1,
             onloan => '2000-02-02',
             location => 'ABC',
@@ -200,7 +202,6 @@ sub mock_c4_items_GetItemsInfo {
     foreach my $itemnumber (@$itemnumbers) {
         push @items, $items_by_itemnumber{$itemnumber};
     }
-
     return @items;
 }
 
@@ -244,6 +245,9 @@ BEGIN {
         1 => {
             2 => 1,
         },
+        2 => {
+            1 => 1,
+        },
     );
 }
 
@@ -256,6 +260,21 @@ sub mock_c4_reserves_CanItemBeReserved {
         : 0;
 
     return $can_reserve;
+}
+
+BEGIN {
+    %is_available_for_item_level_request = (
+        1 => 1,
+    );
+}
+sub mock_c4_reserves_IsAvailableForItemLevelRequest {
+    my $itemnumber = @_;
+    my $available =
+        $is_available_for_item_level_request{$itemnumber}
+        ? 1
+        : 0;
+
+    return $available;
 }
 
 BEGIN {
@@ -274,3 +293,17 @@ sub mock_c4_members_GetMember {
     return $borrowers_by_username{ $param{userid} };
 }
 
+BEGIN {
+    @items_columns = (
+        "withdrawn", "biblioitemnumber", "restricted", "holdingbranchname", "notforloan",
+        "replacementpricedate", "itemnumber", "ccode", "itemnotes", "location", "itemcallnumber",
+        "stack", "date_due", "barcode", "itemlost", "uri", "datelastseen", "materials", "price",
+        "issues", "homebranch", "replacementprice", "more_subfields_xml", "cn_source",
+        "homebranchname", "booksellerid", "biblionumber", "renewals", "holdingbranch",
+        "timestamp", "damaged", "cn_sort", "stocknumber", "reserves", "enumchron", "datelastborrowed",
+        "dateaccessioned", "copynumber", "permanent_location", "itype", "paidfor", "onloan"
+    )
+}
+sub mock_koha_rest_catalogue_items_columns {
+    return @items_columns;
+}
